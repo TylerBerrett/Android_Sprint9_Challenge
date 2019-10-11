@@ -1,5 +1,8 @@
 package com.example.additionalandroid
 
+import android.content.Context
+import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.media.MediaPlayer
 import android.net.Uri
@@ -31,8 +34,18 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
 
-    private lateinit var audio: Uri
     private lateinit var mp: MediaPlayer
+
+    private lateinit var audio: Uri
+
+    lateinit var sharedPref: SharedPreferences
+
+    companion object {
+        private val defaultAudioLocation = "android.resource://com.example.additionalandroid/raw/nice"
+
+    }
+
+
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,8 +61,21 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             ActivityCompat.requestPermissions(this, arrayOf(permission), 12)
         } else{ fusedLocationClient = LocationServices.getFusedLocationProviderClient(this) }
 
-        audio = Uri.parse("android.resource://com.example.additionalandroid/raw/nice")
-        mp = MediaPlayer.create(this, audio)
+        audio = Uri.parse(defaultAudioLocation)
+
+        sharedPref = this.getPreferences(Context.MODE_PRIVATE)
+        val savedAudio = sharedPref.getString("key1", "")
+
+        mp = if (savedAudio.isNullOrBlank()){
+            MediaPlayer.create(this, audio)
+        } else {
+            MediaPlayer.create(this, Uri.parse(savedAudio))
+        }
+
+
+
+
+
 
     }
 
@@ -85,13 +111,33 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         when (item.itemId){
             R.id.drop_pin -> addMarker(center)
             R.id.center_location -> mMap.moveCamera(CameraUpdateFactory.newLatLng(centerLatLong))
+            R.id.add_audio -> {
+                val getAudio = Intent()
+                getAudio.action = Intent.ACTION_GET_CONTENT
+                getAudio.type = ("audio/*")
+                startActivityForResult(getAudio, 12)
+
+            }
         }
         return super.onOptionsItemSelected(item)
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (requestCode == 12){
+            data?.let {
+                sharedPref.edit().putString("key", "${it.data}").commit()
+                val newAudio = it.data ?: Uri.parse(defaultAudioLocation)
+                mp = MediaPlayer.create(this, newAudio)
+            }
+        }
+        super.onActivityResult(requestCode, resultCode, data)
+    }
+
 
     private fun addMarker(latLng: LatLng){
-        mMap.addMarker(MarkerOptions().position(latLng).title("${latLng.latitude}, ${latLng.longitude}")).isDraggable = true
+        val lat = latLng.latitude
+        val long = latLng.longitude
+        mMap.addMarker(MarkerOptions().position(latLng).title("$lat, $long")).isDraggable = true
         mp.start()
     }
 
