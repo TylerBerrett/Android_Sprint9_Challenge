@@ -5,8 +5,9 @@ import android.media.MediaPlayer
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.view.Menu
-import android.view.MenuItem
+import android.view.*
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 
@@ -16,7 +17,9 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import java.util.jar.Manifest
 
@@ -27,6 +30,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var centerLatLong: LatLng
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+
+    private lateinit var audio: Uri
+    private lateinit var mp: MediaPlayer
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,6 +48,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             ActivityCompat.requestPermissions(this, arrayOf(permission), 12)
         } else{ fusedLocationClient = LocationServices.getFusedLocationProviderClient(this) }
 
+        audio = Uri.parse("android.resource://com.example.additionalandroid/raw/nice")
+        mp = MediaPlayer.create(this, audio)
+
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
@@ -51,6 +61,18 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             centerLatLong = currentLocation
             mMap.moveCamera(CameraUpdateFactory.newLatLng(currentLocation))
         }
+
+        mMap.setOnMarkerDragListener(object: GoogleMap.OnMarkerDragListener{
+            override fun onMarkerDragStart(p0: Marker?) {
+                p0?.remove()
+            }
+            override fun onMarkerDragEnd(p0: Marker?) {}
+            override fun onMarkerDrag(p0: Marker?) {}
+        })
+
+        mMap.setOnMapLongClickListener {
+            addMarker(it)
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -59,17 +81,18 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        val audio = Uri.parse("android.resource://com.example.additionalandroid/raw/nice")
-        val mp = MediaPlayer.create(this, audio)
+        val center = mMap.cameraPosition.target
         when (item.itemId){
-            R.id.drop_pin -> {
-                mMap.addMarker(MarkerOptions().position(mMap.cameraPosition.target).title("My Marker"))
-                mp.start()
-
-            }
+            R.id.drop_pin -> addMarker(center)
             R.id.center_location -> mMap.moveCamera(CameraUpdateFactory.newLatLng(centerLatLong))
         }
         return super.onOptionsItemSelected(item)
+    }
+
+
+    private fun addMarker(latLng: LatLng){
+        mMap.addMarker(MarkerOptions().position(latLng).title("${latLng.latitude}, ${latLng.longitude}")).isDraggable = true
+        mp.start()
     }
 
 }
