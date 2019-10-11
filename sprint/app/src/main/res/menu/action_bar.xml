@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <group>
+
+        <item
+            android:id="@+id/drop_pin"
+            android:title="Drop a pin"
+            app:showAsAction="always"
+            android:icon="@drawable/ic_add_location_black_24dp"/>
+
+        <item
+            android:id="@+id/center_location"
+            android:title="Center my location"
+            app:showAsAction="ifRoom"
+            android:icon="@drawable/ic_my_location_black_24dp"/>
+
+        <item
+            android:id="@+id/add_audio"
+            android:title="Change pin audio"/>
+
+
+    </group>
+
+</menu>
