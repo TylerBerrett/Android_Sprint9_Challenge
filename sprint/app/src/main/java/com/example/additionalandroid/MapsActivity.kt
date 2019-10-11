@@ -1,6 +1,8 @@
 package com.example.additionalandroid
 
 import android.content.pm.PackageManager
+import android.media.MediaPlayer
+import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.Menu
@@ -37,23 +39,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         val permission = android.Manifest.permission.ACCESS_FINE_LOCATION
         if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED){
             ActivityCompat.requestPermissions(this, arrayOf(permission), 12)
-        } else{
-            fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        } else{ fusedLocationClient = LocationServices.getFusedLocationProviderClient(this) }
 
-        }
     }
 
-
-
-    /**
-     * Manipulates the map once available.
-     * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
-     */
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
@@ -62,11 +51,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             centerLatLong = currentLocation
             mMap.moveCamera(CameraUpdateFactory.newLatLng(currentLocation))
         }
-
-        // Add a marker in Sydney and move the camera
-        val sydney = LatLng(-34.0, 151.0)
-        mMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -75,9 +59,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        val audio = Uri.parse("android.resource://com.example.additionalandroid/raw/nice")
+        val mp = MediaPlayer.create(this, audio)
         when (item.itemId){
             R.id.drop_pin -> {
                 mMap.addMarker(MarkerOptions().position(mMap.cameraPosition.target).title("My Marker"))
+                mp.start()
+
             }
             R.id.center_location -> mMap.moveCamera(CameraUpdateFactory.newLatLng(centerLatLong))
         }
